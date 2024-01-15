@@ -5,7 +5,9 @@ using UnityEngine.UI;
 public class UIController : MonoBehaviour
 {
     [SerializeField] private GameObject buttonPrefab;
-    [SerializeField] private Transform buttonParrent;
+    [SerializeField] private Transform buttonParent;
+    [SerializeField] private GameObject playerPanel;
+    [SerializeField] private GameObject shortPanel;
     private GameManager gameManager;
 
     void Start()
@@ -16,12 +18,14 @@ public class UIController : MonoBehaviour
         {
             CreateButtonForPlayer(i);
         }
+        
+        HidePlayersButton();
     }
 
     void CreateButtonForPlayer(int playerId)
     {
-        GameObject buttonObj = Instantiate(buttonPrefab, buttonParrent);
-        buttonObj.name = "PlayerButton" + playerId;
+        GameObject buttonObj = Instantiate(buttonPrefab, buttonParent);
+        buttonObj.name = "PlayerButton" + (playerId + 1);
         buttonObj.GetComponentInChildren<TextMeshProUGUI>().text = "Player " + (playerId + 1);
 
         Button button = buttonObj.GetComponent<Button>();
@@ -32,4 +36,20 @@ public class UIController : MonoBehaviour
     {
         gameManager.SetLeader(playerId);
     }
+
+    void HidePlayersButton()
+    {
+        GameObject hidePlayersButtonObj = Instantiate(buttonPrefab, buttonParent);
+        hidePlayersButtonObj.name = "HidePlayersButton";
+        hidePlayersButtonObj.GetComponentInChildren<TextMeshProUGUI>().text = "Hide Players";
+        Button hidePlayersButton = hidePlayersButtonObj.GetComponent<Button>();
+        hidePlayersButton.onClick.AddListener(TogglePlayerUI);
+    }
+
+    public void TogglePlayerUI()
+    {
+        playerPanel.SetActive(!playerPanel.activeSelf);
+        shortPanel.SetActive(!shortPanel.activeSelf);
+    }
+    
 }
