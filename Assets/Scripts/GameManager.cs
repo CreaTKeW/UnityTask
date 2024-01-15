@@ -5,12 +5,15 @@ using UnityEngine.AI;
 public class GameManager : MonoBehaviour
 {    
     [SerializeField] private List<GameObject> characters;
+    [SerializeField] private GameObject characterParent;
     [SerializeField] private GameObject characterPrefab;
     [SerializeField] private int numberOfPlayers;
 
-    
     private CameraController cameraController;
-    private float searchRadius = 10f;
+    private int playerNum;
+    private float searchRadius = 20f;   
+    private const int minPlayers = 3;
+    private const int maxPlayers = 10;
     public int NumberOfPlayers => numberOfPlayers;
 
     // Start is called before the first frame update
@@ -18,7 +21,7 @@ public class GameManager : MonoBehaviour
     {
         cameraController = FindObjectOfType<CameraController>();
         characters = new List<GameObject>();
-        numberOfPlayers = Mathf.Max(3, numberOfPlayers);
+        numberOfPlayers = Mathf.Clamp(numberOfPlayers, minPlayers, maxPlayers);
 
         for (int i = 0; i < numberOfPlayers; i++)
         {
@@ -35,9 +38,27 @@ public class GameManager : MonoBehaviour
 
             if (NavMesh.SamplePosition(randomPosition, out hit, searchRadius, NavMesh.AllAreas))
             {
-                GameObject character = Instantiate(characterPrefab, hit.position, Quaternion.identity);
-                characters.Add(character);
-                return;
+                // Check if this position is too close to any existing character
+                bool tooClose = false;
+                foreach (GameObject existingCharacter in characters)
+                {
+                    if (Vector3.Distance(hit.position, existingCharacter.transform.position) < 1)
+                    {
+                        tooClose = true;
+                        break; // Break out of the foreach loop
+                    }
+                }
+
+                if (!tooClose)
+                {
+                    playerNum++;
+
+                    GameObject character = Instantiate(characterPrefab, hit.position, Quaternion.identity);
+                    character.transform.SetParent(characterParent.transform, false);
+                    character.name = "Player" + playerNum;
+                    characters.Add(character);
+                    return; // Exit the method if a suitable position is found
+                }
             }
         }
 
@@ -48,10 +69,14 @@ public class GameManager : MonoBehaviour
     {
         foreach (GameObject character in characters)
         {
+            Character charScript = character.GetComponent<Character>();
+            charScript.IsLeader = false;
+            charScript.Leader = characters[playerId].transform;
             character.GetComponent<Renderer>().material.color = Color.green;
         }
 
         cameraController.SetLeader(characters[playerId].transform);
-        characters[playerId].GetComponent<Renderer>().material.color = Color.red;
+        characters[playerId].GetComponent<Character>().IsLeader = true;
+        characters[playerId].GetComponent<Renderer>().material.color = Color.red;        
     }
 }

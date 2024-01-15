@@ -5,7 +5,7 @@ public class CameraController : MonoBehaviour
     private Vector3 initialPosition = new Vector3(-5, 10, -5);
     private Vector3 initialRotation = new Vector3(45, 45, 0);
 
-    private Transform leader;
+    public Transform leader;
     private Vector3 offset = new Vector3(-6, 9, -6);
 
     [SerializeField] private float smoothSpeed = 5f;
