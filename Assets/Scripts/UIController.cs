@@ -8,22 +8,34 @@ public class UIController : MonoBehaviour
     [SerializeField] private Transform buttonParent;
     [SerializeField] private GameObject playerPanel;
     [SerializeField] private GameObject shortPanel;
-    private GameManager gameManager;
+    [SerializeField] private GameManager gameManager;
 
     void Start()
     {
-        gameManager = FindObjectOfType<GameManager>();
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManager not found in the scene.");
+            return;
+        }
 
+        InitializePlayerButtons();
+        InitializeUIControlButton();
+    }
+
+    // Creates buttons for each player
+    private void InitializePlayerButtons()
+    {
         for (int i = 0; i < gameManager.NumberOfPlayers; i++)
         {
             CreateButtonForPlayer(i);
         }
-        
-        HidePlayersButton();
     }
 
-    void CreateButtonForPlayer(int playerId)
+    private void CreateButtonForPlayer(int playerId)
     {
+        if (buttonPrefab == null || buttonParent == null) return;
+
+        // Instantiate the button and set its properties
         GameObject buttonObj = Instantiate(buttonPrefab, buttonParent);
         buttonObj.name = "PlayerButton" + (playerId + 1);
         buttonObj.GetComponentInChildren<TextMeshProUGUI>().text = "Player " + (playerId + 1);
@@ -32,24 +44,28 @@ public class UIController : MonoBehaviour
         button.onClick.AddListener(() => SetLeader(playerId));
     }
 
-    void SetLeader(int playerId)
+    private void SetLeader(int playerId)
     {
         gameManager.SetLeader(playerId);
     }
 
-    void HidePlayersButton()
+    private void InitializeUIControlButton()
     {
+        if (buttonPrefab == null || buttonParent == null) return;
+
+        // Instantiate the hide button and set its properties
         GameObject hidePlayersButtonObj = Instantiate(buttonPrefab, buttonParent);
         hidePlayersButtonObj.name = "HidePlayersButton";
         hidePlayersButtonObj.GetComponentInChildren<TextMeshProUGUI>().text = "Hide Players";
+
         Button hidePlayersButton = hidePlayersButtonObj.GetComponent<Button>();
         hidePlayersButton.onClick.AddListener(TogglePlayerUI);
     }
 
+    // Toggles the visibility of player panels
     public void TogglePlayerUI()
     {
         playerPanel.SetActive(!playerPanel.activeSelf);
         shortPanel.SetActive(!shortPanel.activeSelf);
     }
-    
 }

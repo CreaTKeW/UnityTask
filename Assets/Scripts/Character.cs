@@ -9,46 +9,76 @@ public class Character : MonoBehaviour
 
     private Camera mainCamera;
     private NavMeshAgent agent;
-    private float followDistance = 2f; // The distance between the leader and players
+    private float followDistance = 2f; // Distance between leader and other players
 
-    [Header("Movement values")]    
-    [SerializeField] private float speed;
-    [SerializeField] private float agility;
-    [SerializeField] private float stamina;
+    private float speed;
+    private float agility;
+    private float stamina;
 
-    // Start is called before the first frame update
+    // Randomized movement attributes
+    [Header("Movement values")]
+    [SerializeField] private float minSpeed = 3f;
+    [SerializeField] private float maxSpeed = 6f;
+    [SerializeField] private float minAgility = 100f;
+    [SerializeField] private float maxAgility = 200f;
+    [SerializeField] private float minStamina = 6f;
+    [SerializeField] private float maxStamina = 12f;
+
     void Start()
     {
-        mainCamera = FindObjectOfType<Camera>();       
+        mainCamera = FindObjectOfType<Camera>();
         agent = GetComponent<NavMeshAgent>();
+
+        // Assign randomized values to attributes
+        speed = Random.Range(minSpeed, maxSpeed);
+        agility = Random.Range(minAgility, maxAgility);
+        stamina = Random.Range(minStamina, maxStamina);
+
+        // Apply attributes to NavMeshAgent
+        agent.speed = speed;
+        agent.angularSpeed = agility;
+        agent.acceleration = stamina;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if(IsLeader)
+        // Leader controls via mouse input
+        if (IsLeader)
         {
-            if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject()) // Checks if LMB was pressed and also if cursor is on gameobject
-            {
-                Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
+            LeaderMovement();
+        }
+        // Follower behavior towards leader
+        else if (Leader != null)
+        {
+            FollowerMovement();
+        }
+    }
 
-                if (Physics.Raycast(ray, out hit))
-                {
-                    agent.SetDestination(hit.point);
-                }
+    private void LeaderMovement()
+    {
+        // Move to clicked position if not clicking on UI
+        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                agent.SetDestination(hit.point);
             }
         }
-        else if(Leader != null)
-        {
-            float distanceToLeader = Vector3.Distance(transform.position, Leader.position);
+    }
 
-            if(distanceToLeader > followDistance)
-            {
-                Vector3 followPosition = Leader.position - Leader.forward * followDistance;
-                agent.SetDestination(followPosition);
-            }
-            else agent.ResetPath();
+    private void FollowerMovement()
+    {
+        // Move towards the leader maintaining a specific distance
+        float distanceToLeader = Vector3.Distance(transform.position, Leader.position);
+        if (distanceToLeader > followDistance)
+        {
+            Vector3 followPosition = Leader.position - Leader.forward * followDistance;
+            agent.SetDestination(followPosition);
+        }
+        else
+        {
+            agent.ResetPath();
         }
     }
 }
