@@ -1521,7 +1521,7 @@ MonoBehaviour:
   characters: []
   characterParent: {fileID: 162621482}
   characterPrefab: {fileID: 2252864552750701295, guid: 174c9e460a230504db4bb0d32a1836d8, type: 3}
-  numberOfPlayers: 3
+  numberOfPlayers: 10
   cameraController: {fileID: 1911952822}
 --- !u!4 &937631937
 Transform:
